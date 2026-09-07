@@ -8,11 +8,11 @@ from qdrant_client.models import (
 )
 
 
-QDRANT_PATH = "data/qdrant"
+QDRANT_PATH = "data/qdrant"   # Fetching the Qdrant data path
 
 COLLECTION_NAME = "paperpilot_chunks"
 
-VECTOR_SIZE = 1024
+VECTOR_SIZE = 1024 # Size of the vector embeddings
 
 
 class QdrantVectorStore:
@@ -25,7 +25,7 @@ class QdrantVectorStore:
 
     def create_collection(self):
 
-        collections = self.client.get_collections()
+        collections = self.client.get_collections() 
 
         existing_collections = [
             collection.name
