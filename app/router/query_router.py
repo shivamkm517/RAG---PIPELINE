@@ -44,6 +44,15 @@ Examples:
 "What is the capital of France?"
 -> direct
 
+"What is WorkHub?"
+-> rag
+
+"Tell me about WorkHub"
+-> rag
+
+"Explain WorkHub"
+-> rag
+
 "What is Python?"
 -> direct
         """,
