@@ -1,35 +1,28 @@
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate
 
 from app.llm.client import llm
 from app.retrieval.hybrid_retriever import HybridRetriever
 
-retriever = HybridRetriever()
 
+retriever = HybridRetriever()
 
 prompt = ChatPromptTemplate.from_template(
     """
 You are a document question-answering assistant.
 
-Answer the question based on the context below.
+Use the conversation history and provided context to understand
+the user's current question.
 
-The context may express the answer using different wording.
-You should understand the meaning of the context and answer
-the question accordingly.
+Answer using ONLY information supported by the context.
 
-Do NOT require the exact words from the question to appear
-in the context.
-
-Only use information supported by the context.
-Do not add outside information.
-
-If the context genuinely does not contain enough information,
-say:
-"I don't have enough information in the provided documents."
+Conversation history:
+{history}
 
 Context:
 {context}
 
-Question:
+Current question:
 {question}
 
 Answer:
@@ -37,7 +30,10 @@ Answer:
 )
 
 
-def rag_chain(query: str) -> str:
+def rag_chain(
+    query: str,
+    history: list[dict] | None = None,
+) -> str:
 
     results = retriever.search(
         query=query,
@@ -49,7 +45,16 @@ def rag_chain(query: str) -> str:
         for result in results
     )
 
+    history_text = ""
+
+    if history:
+        history_text = "\n".join(
+            f"{message['role']}: {message['content']}"
+            for message in history
+        )
+
     messages = prompt.format_messages(
+        history=history_text,
         context=context,
         question=query,
     )
