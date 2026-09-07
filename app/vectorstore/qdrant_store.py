@@ -102,3 +102,6 @@ class QdrantVectorStore:
         ).points
 
         return results
+
+    def close(self):
+        self.client.close()
