@@ -111,3 +111,6 @@ wheel==0.42.0
 wsproto==1.2.0
 xdg==5
 xkit==0.0.0
+fastapi>=0.100.0
+python-multipart>=0.0.6
+

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaperPilot - RAG Chat Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Highlight.js CSS for Code Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </div>
+                    <div class="brand-info">
+                        <h2>PaperPilot</h2>
+                        <span>RAG Assistant</span>
+                    </div>
+                </div>
+                <button id="new-chat-btn" class="btn btn-primary btn-new-chat">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>New Chat</span>
+                </button>
+            </div>
+
+            <!-- Thread History -->
+            <div class="sidebar-section thread-history-section">
+                <div class="section-title">
+                    <i class="fa-regular fa-comments"></i>
+                    <span>Recent Chats</span>
+                </div>
+                <ul id="threads-list" class="threads-list">
+                    <!-- Dynamic thread items will be inserted here -->
+                </ul>
+            </div>
+
+            <!-- Document Upload Section -->
+            <div class="sidebar-section upload-section">
+                <div class="section-title">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Knowledge Base</span>
+                </div>
+                <div class="upload-box" id="upload-dropzone">
+                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+                    <p class="upload-text">Upload PDF Document</p>
+                    <span class="upload-subtext">Click or drag & drop file</span>
+                    <input type="file" id="file-input" accept=".pdf" hidden>
+                </div>
+                <div id="upload-status" class="upload-status hidden">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <span id="upload-status-text">Uploading document...</span>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-status">
+                    <span class="status-dot online"></span>
+                    <span>Qdrant + Cohere + Ollama</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-area">
+            <!-- Top Navbar -->
+            <header class="chat-header">
+                <div class="chat-title-info">
+                    <h3 id="current-chat-title">New Chat</h3>
+                    <div id="route-indicator" class="route-badge hidden">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span id="route-text">RAG Route</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-icon" title="Clear View" id="clear-view-btn">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Chat Messages Display -->
+            <div class="messages-container" id="messages-container">
+                <!-- Welcome View when no messages -->
+                <div class="welcome-container" id="welcome-container">
+                    <div class="welcome-icon">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <h1>Welcome to PaperPilot</h1>
+                    <p>Ask questions about your uploaded documents or general topics. PaperPilot automatically routes your request to document RAG search or direct LLM reasoning.</p>
+                    
+                    <div class="suggestion-cards">
+                        <div class="card suggestion-card" data-prompt="What is the main purpose of WorkHub?">
+                            <div class="card-icon"><i class="fa-solid fa-building"></i></div>
+                            <div class="card-text">
+                                <h4>WorkHub Overview</h4>
+                                <p>"What is the main purpose of WorkHub?"</p>
+                            </div>
+                        </div>
+                        <div class="card suggestion-card" data-prompt="What features does WorkHub provide?">
+                            <div class="card-icon"><i class="fa-solid fa-list-check"></i></div>
+                            <div class="card-text">
+                                <h4>Key Features</h4>
+                                <p>"What features does WorkHub provide?"</p>
+                            </div>
+                        </div>
+                        <div class="card suggestion-card" data-prompt="Who are the primary users of WorkHub?">
+                            <div class="card-icon"><i class="fa-solid fa-users"></i></div>
+                            <div class="card-text">
+                                <h4>Target Users</h4>
+                                <p>"Who are the primary users of WorkHub?"</p>
+                            </div>
+                        </div>
+                        <div class="card suggestion-card" data-prompt="What is the capital of France?">
+                            <div class="card-icon"><i class="fa-solid fa-globe"></i></div>
+                            <div class="card-text">
+                                <h4>Direct LLM Test</h4>
+                                <p>"What is the capital of France?"</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Chat Messages -->
+                <div id="messages-list" class="messages-list"></div>
+
+                <!-- Typing indicator -->
+                <div id="typing-indicator" class="message-row assistant-row hidden">
+                    <div class="avatar assistant-avatar">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="message-bubble typing-bubble">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input Area -->
+            <div class="chat-input-container">
+                <form id="chat-form" class="chat-form">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="user-input" 
+                            placeholder="Type your question or message... (Shift + Enter for new line)"
+                            rows="1"
+                        ></textarea>
+                        <button type="submit" id="send-btn" class="btn-send" disabled>
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="input-footer">
+                    <span>PaperPilot RAG Assistant &bull; Powered by FastAPI & LangChain</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- External Libraries: Marked JS & Highlight JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

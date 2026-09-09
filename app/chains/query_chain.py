@@ -5,14 +5,23 @@ from app.router.query_router import route_query
 from app.chains.rag_chain import rag_chain
 
 from app.memory.database import SessionLocal
-from app.memory.repository import add_message, get_thread_messages
+from datetime import datetime
+from app.memory.repository import add_message, get_thread_messages, get_thread_by_id
 
 
-def answer_query(query: str, thread_id: int) -> str:
+def answer_query(query: str, thread_id: int) -> dict:
     db = SessionLocal()
 
     try:
         previous_messages = get_thread_messages(db, thread_id)
+
+        # Update thread title if empty or default
+        thread = get_thread_by_id(db, thread_id)
+        if thread:
+            thread.updated_at = datetime.utcnow()
+            if not thread.title or thread.title == "New Chat":
+                thread.title = query[:40] + ("..." if len(query) > 40 else "")
+            db.commit()
 
         history = [
             {
@@ -61,7 +70,11 @@ def answer_query(query: str, thread_id: int) -> str:
             answer,
         )
 
-        return answer
+        return {
+            "answer": answer,
+            "route": route,
+            "thread_id": thread_id,
+        }
 
     finally:
         db.close()
